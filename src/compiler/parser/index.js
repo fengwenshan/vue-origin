@@ -22,6 +22,7 @@ import {
 } from '../helpers'
 
 export const onRE = /^@|^v-on:/
+// 用于匹配指令、事件绑定和属性绑定等在模板中以 v-、@、:、.、# 开头的字符串
 export const dirRE = process.env.VBIND_PROP_SHORTHAND
   ? /^v-|^@|^:|^\.|^#/
   : /^v-|^@|^:|^#/
@@ -33,6 +34,7 @@ const dynamicArgRE = /^\[.*\]$/
 const argRE = /:(.*)$/
 export const bindRE = /^:|^\.|^v-bind:/
 const propBindRE = /^\./
+// 模板修饰符，指令后面加个.
 const modifierRE = /\.[^.\]]+(?=[^\]]*$)/g
 
 const slotRE = /^v-slot(:|$)|^#/
@@ -92,18 +94,25 @@ export function parse (
     el.attrsMap['v-bind:is'] ||
     !(el.attrsMap.is ? isReservedTag(el.attrsMap.is) : isReservedTag(el.tag))
   )
+  // class 中置处理
   transforms = pluckModuleFunction(options.modules, 'transformNode')
+  // model 前置处理
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
+  // [] 后置处理，目前没有，就是一个空数组
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
 
   delimiters = options.delimiters
 
   const stack = []
+  // 保留空格
   const preserveWhitespace = options.preserveWhitespace !== false
-  const whitespaceOption = options.whitespace
+  // 空格
+  const whitespaceOption = options.whitespace 
   let root
   let currentParent
+  // 用来标识当前解析的标签是否在拥有 v-pre 的标签之内
   let inVPre = false
+  // 来标识当前正在解析的标签是否在 <pre></pre> 标签之内
   let inPre = false
   let warned = false
 
@@ -117,6 +126,7 @@ export function parse (
   function closeElement (element) {
     trimEndingWhitespace(element)
     if (!inVPre && !element.processed) {
+      // 进入这里
       element = processElement(element, options)
     }
     // tree management
@@ -173,7 +183,7 @@ export function parse (
       postTransforms[i](element, options)
     }
   }
-
+  // 删除空白节点
   function trimEndingWhitespace (el) {
     // remove trailing whitespace node
     if (!inPre) {
@@ -207,7 +217,7 @@ export function parse (
 
   parseHTML(template, {
     warn,
-    expectHTML: options.expectHTML,
+    expectHTML: options.expectHTML, // true
     isUnaryTag: options.isUnaryTag,
     canBeLeftOpenTag: options.canBeLeftOpenTag,
     shouldDecodeNewlines: options.shouldDecodeNewlines,
@@ -229,7 +239,7 @@ export function parse (
       if (ns) {
         element.ns = ns
       }
-
+      
       if (process.env.NODE_ENV !== 'production') {
         if (options.outputSourceRange) {
           element.start = start
@@ -252,8 +262,8 @@ export function parse (
           }
         })
       }
-
-      if (isForbiddenTag(element) && !isServerRendering()) {
+      // 检查当前元素是否为被禁止的标签 style || script && type='text/javascript'
+      if (isForbiddenTag(element) && !isServerRendering() /* 非服务端渲染 */) {
         element.forbidden = true
         process.env.NODE_ENV !== 'production' && warn(
           'Templates should only be responsible for mapping the state to the ' +
@@ -292,11 +302,12 @@ export function parse (
           checkRootConstraints(root)
         }
       }
-
+    
       if (!unary) {
         currentParent = element
         stack.push(element)
       } else {
+        // 自闭合标签
         closeElement(element)
       }
     },
@@ -762,13 +773,14 @@ function processComponent (el) {
 function processAttrs (el) {
   const list = el.attrsList
   let i, l, name, rawName, value, modifiers, syncGen, isDynamic
+
   for (i = 0, l = list.length; i < l; i++) {
     name = rawName = list[i].name
     value = list[i].value
     if (dirRE.test(name)) {
       // mark element as dynamic
       el.hasBindings = true
-      // modifiers
+      // modifiers 处理解析符号
       modifiers = parseModifiers(name.replace(dirRE, ''))
       // support .foo shorthand syntax for the .prop modifier
       if (process.env.VBIND_PROP_SHORTHAND && propBindRE.test(name)) {
@@ -777,6 +789,7 @@ function processAttrs (el) {
       } else if (modifiers) {
         name = name.replace(modifierRE, '')
       }
+
       if (bindRE.test(name)) { // v-bind
         name = name.replace(bindRE, '')
         value = parseFilters(value)
@@ -784,14 +797,14 @@ function processAttrs (el) {
         if (isDynamic) {
           name = name.slice(1, -1)
         }
-        if (
-          process.env.NODE_ENV !== 'production' &&
-          value.trim().length === 0
-        ) {
-          warn(
-            `The value for a v-bind expression cannot be empty. Found in "v-bind:${name}"`
-          )
-        }
+        // if (
+        //   process.env.NODE_ENV !== 'production' &&
+        //   value.trim().length === 0
+        // ) {
+        //   warn(
+        //     `The value for a v-bind expression cannot be empty. Found in "v-bind:${name}"`
+        //   )
+        // }
         if (modifiers) {
           if (modifiers.prop && !isDynamic) {
             name = camelize(name)

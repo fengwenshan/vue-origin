@@ -9,7 +9,7 @@
  * http://erik.eae.net/simplehtmlparser/simplehtmlparser.js
  */
 
-import { makeMap, no } from 'shared/util'
+import { makeMap, no } from 'shared/util' 
 import { isNonPhrasingTag } from 'web/compiler/util'
 import { unicodeRegExp } from 'core/util/lang'
 
@@ -52,16 +52,25 @@ function decodeAttr (value, shouldDecodeNewlines) {
 }
 
 export function parseHTML (html, options) {
+  // 存储双标签，非一元标签
   const stack = []
+  // boolean 值， 期望html, 在web端为true
   const expectHTML = options.expectHTML
+  // 检测一个标签是否是一元标签， no = () => false
   const isUnaryTag = options.isUnaryTag || no
+  // 用来检测一个标签是否是可以省略闭合标签的非一元标签
   const canBeLeftOpenTag = options.canBeLeftOpenTag || no
+  // 裁切指针
   let index = 0
+  // last 剩余parse的html字符串
+  // lastTag 始终存储 栈顶元素
   let last, lastTag
+  // while 循环到最后就是个空字符串
   while (html) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
     if (!lastTag || !isPlainTextElement(lastTag)) {
+      // 确保即将 parse 的内容不是在纯文本标签里 (script,style,textarea)
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
         // Comment:
@@ -144,6 +153,7 @@ export function parseHTML (html, options) {
         options.chars(text, index - text.length, index)
       }
     } else {
+      // 即将 parse 的内容是在纯文本标签里 (script,style,textarea)
       let endTagLength = 0
       const stackedTag = lastTag.toLowerCase()
       const reStackedTag = reCache[stackedTag] || (reCache[stackedTag] = new RegExp('([\\s\\S]*?)(</' + stackedTag + '[^>]*>)', 'i'))
@@ -209,7 +219,7 @@ export function parseHTML (html, options) {
     }
   }
 
-  function handleStartTag (match) {
+  function handleStartTag (match) { 
     const tagName = match.tagName
     const unarySlash = match.unarySlash
 
@@ -234,6 +244,7 @@ export function parseHTML (html, options) {
         : options.shouldDecodeNewlines
       attrs[i] = {
         name: args[1],
+        // decode 解码属性
         value: decodeAttr(value, shouldDecodeNewlines)
       }
       if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {

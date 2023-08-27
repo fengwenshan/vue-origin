@@ -23,6 +23,7 @@ import {
   createASTElement
 } from 'compiler/parser/index'
 
+// 处理input, 其他都不处理
 function preTransformNode (el: ASTElement, options: CompilerOptions) {
   if (el.tag === 'input') {
     const map = el.attrsMap

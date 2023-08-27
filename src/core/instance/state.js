@@ -77,29 +77,30 @@ function initProps (vm: Component, propsOptions: Object) {
     keys.push(key)
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
-    if (process.env.NODE_ENV !== 'production') {
-      const hyphenatedKey = hyphenate(key)
-      if (isReservedAttribute(hyphenatedKey) ||
-          config.isReservedAttr(hyphenatedKey)) {
-        warn(
-          `"${hyphenatedKey}" is a reserved attribute and cannot be used as component prop.`,
-          vm
-        )
-      }
-      defineReactive(props, key, value, () => {
-        if (!isRoot && !isUpdatingChildComponent) {
-          warn(
-            `Avoid mutating a prop directly since the value will be ` +
-            `overwritten whenever the parent component re-renders. ` +
-            `Instead, use a data or computed property based on the prop's ` +
-            `value. Prop being mutated: "${key}"`,
-            vm
-          )
-        }
-      })
-    } else {
-      defineReactive(props, key, value)
-    }
+    // if (process.env.NODE_ENV !== 'production') {
+    //   const hyphenatedKey = hyphenate(key)
+    //   if (isReservedAttribute(hyphenatedKey) ||
+    //       config.isReservedAttr(hyphenatedKey)) {
+    //     warn(
+    //       `"${hyphenatedKey}" is a reserved attribute and cannot be used as component prop.`,
+    //       vm
+    //     )
+    //   }
+    //   defineReactive(props, key, value, () => {
+    //     if (!isRoot && !isUpdatingChildComponent) {
+    //       warn(
+    //         `Avoid mutating a prop directly since the value will be ` +
+    //         `overwritten whenever the parent component re-renders. ` +
+    //         `Instead, use a data or computed property based on the prop's ` +
+    //         `value. Prop being mutated: "${key}"`,
+    //         vm
+    //       )
+    //     }
+    //   })
+    // } else {
+    //   defineReactive(props, key, value)
+    // }
+    defineReactive(props, key, value)
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
@@ -113,7 +114,7 @@ function initProps (vm: Component, propsOptions: Object) {
 function initData (vm: Component) {
   let data = vm.$options.data
   data = vm._data = typeof data === 'function'
-    ? getData(data, vm)
+    ? getData(data, vm) 
     : data || {}
   if (!isPlainObject(data)) {
     data = {}
